@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Generate .npmrc auth for GitHub Packages
+        run: echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" >> "$HOME/.npmrc"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.CONTRACTS_NPM_TOKEN || secrets.GITHUB_TOKEN }}
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - name: Build Docker image
+        run: |
+          cp .npmrc "$RUNNER_TEMP/npmrc"
+          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" >> "$RUNNER_TEMP/npmrc"
+          docker build --secret id=npmrc,src="$RUNNER_TEMP/npmrc" -t accounting-consumer .
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.CONTRACTS_NPM_TOKEN || secrets.GITHUB_TOKEN }}

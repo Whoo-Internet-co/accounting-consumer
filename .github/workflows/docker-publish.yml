@@ -1,0 +1,43 @@
+name: Publish container
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate .npmrc for GitHub Packages
+        run: |
+          cp .npmrc "$RUNNER_TEMP/npmrc"
+          echo "//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}" >> "$RUNNER_TEMP/npmrc"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.CONTRACTS_NPM_TOKEN || secrets.GITHUB_TOKEN }}
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ghcr.io/whoo-internet-co/accounting-consumer
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          secret-files: npmrc=${{ runner.temp }}/npmrc
