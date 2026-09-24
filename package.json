@@ -1,0 +1,40 @@
+{
+  "name": "accounting-consumer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimal functional accounting consumer for TransacaoAutorizada v1 events delivered through Amazon SQS (at-least-once + idempotent, ADR-005/006/007/008).",
+  "type": "module",
+  "main": "dist/main.js",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx src/main.ts",
+    "start": "node dist/main.js",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.883.0",
+    "@aws-sdk/client-sqs": "^3.883.0",
+    "@aws-sdk/lib-dynamodb": "^3.883.0",
+    "@whoo-internet-co/finance-platform-contracts": "^1.0.1",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "@types/node": "^22.18.0",
+    "@vitest/coverage-v8": "^5.0.1",
+    "eslint": "^9.35.0",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.42.0",
+    "vitest": "^5.0.1"
+  }
+}
